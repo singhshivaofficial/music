@@ -1,0 +1,116 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --bg-canvas: #12121a;
+    --bg-obsidian: #0a0a0f;
+    --glass-panel: rgba(18, 18, 26, 0.8);
+    --accent-purple: #00ff88;
+    --accent-glow: rgba(0, 255, 136, 0.4);
+    --text-lavender: #e0e0e0;
+    --border-glass: #2a2a3a;
+    --primary-neon: #00ff88;
+    --secondary-neon: #ff00ff;
+    --tertiary-neon: #00d4ff;
+    
+    --box-shadow-neon: 0 0 5px #00ff88, 0 0 10px #00ff8840;
+    --box-shadow-neon-sm: 0 0 3px #00ff88, 0 0 6px #00ff8830;
+    --box-shadow-neon-lg: 0 0 10px #00ff88, 0 0 20px #00ff8860, 0 0 40px #00ff8830;
+  }
+
+  body {
+    background-color: var(--bg-obsidian);
+    color: var(--text-lavender);
+    font-family: 'Fira Code', monospace;
+    overflow-x: hidden;
+    user-select: none;
+    -webkit-font-smoothing: antialiased;
+    background-image:
+      linear-gradient(rgba(0, 255, 136, 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0, 255, 136, 0.03) 1px, transparent 1px);
+    background-size: 50px 50px;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Share Tech Mono', monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+}
+
+.glass {
+  background: var(--bg-canvas);
+  border: 1px solid var(--border-glass);
+}
+
+.glass-card {
+  background: var(--bg-canvas);
+  border: none;
+  clip-path: polygon(
+    0 10px,
+    10px 0,
+    calc(100% - 10px) 0,
+    100% 10px,
+    100% calc(100% - 10px),
+    calc(100% - 10px) 100%,
+    10px 100%,
+    0 calc(100% - 10px)
+  );
+  transition: all 0.2s ease-out;
+}
+
+.glass-card:hover {
+  background: #1a1a24;
+  box-shadow: var(--box-shadow-neon-sm);
+  transform: translateY(-2px);
+}
+
+.accent-glow {
+  box-shadow: var(--box-shadow-neon);
+}
+
+.accent-glow-lg {
+  box-shadow: var(--box-shadow-neon-lg);
+}
+
+/* Animations */
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.animate-spin-slow {
+  animation: spin-slow 8s linear infinite;
+}
+
+@keyframes equalizer {
+  0% { transform: scaleY(0.3); }
+  50% { transform: scaleY(1); }
+  100% { transform: scaleY(0.3); }
+}
+.animate-equalizer {
+  animation: equalizer 1.2s ease-in-out infinite;
+  transform-origin: bottom;
+}
+
+@keyframes blink {
+  50% { opacity: 0; }
+}
+.animate-blink {
+  animation: blink 1s step-end infinite;
+}
+
+/* Scrollbar customization */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-obsidian);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-glass);
+  border-radius: 0;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--primary-neon);
+}

@@ -1,0 +1,8 @@
+{
+  "name": "Wave",
+  "description": "An ultra-modern dark glassmorphic music discovery and streaming web application powered by Last.fm search, discovery, and recommendations with full-length YouTube IFrame audio playback, simulated equalizer visualizers, and direct audio download.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
