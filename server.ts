@@ -151,7 +151,7 @@ async function formatLastFmTrack(track: any): Promise<any> {
 }
 
 // API: Health check
-app.get(['/api/health', '/healthz', '/_ah/health'], (req, res) => {
+app.get(['/api/health', '/health', '/healthz', '/_ah/health'], (req, res) => {
   res.json({
     status: 'ok',
     engine: 'lastfm + youtube',
@@ -161,7 +161,7 @@ app.get(['/api/health', '/healthz', '/_ah/health'], (req, res) => {
 
 // API 1: Last.fm Search Engine
 // Route user queries to track.search
-app.get(['/api/music/search', '/api/search/songs'], async (req, res) => {
+app.get(['/api/music/search', '/music/search', '/api/search/songs', '/search/songs'], async (req, res) => {
   const query = (req.query.query as string) || (req.query.q as string) || '';
   if (!query.trim()) {
     return res.json({ success: true, data: { total: 0, results: [] } });
@@ -227,7 +227,7 @@ app.get(['/api/music/search', '/api/search/songs'], async (req, res) => {
 });
 
 // API 2: Trending & Discovery (chart.gettoptracks & chart.gettopartists)
-app.get(['/api/curated', '/api/charts/tracks'], async (req, res) => {
+app.get(['/api/curated', '/curated', '/api/charts/tracks', '/charts/tracks'], async (req, res) => {
   try {
     const data = await callLastFm('chart.gettoptracks', { limit: '30' });
     const rawTracks = data?.tracks?.track || [];
@@ -278,7 +278,7 @@ app.get(['/api/curated', '/api/charts/tracks'], async (req, res) => {
   res.json({ success: true, results: [] });
 });
 
-app.get('/api/charts/regional', async (req, res) => {
+app.get(['/api/charts/regional', '/charts/regional'], async (req, res) => {
   const country = (req.query.country as string) || 'united states';
   try {
     const data = await callLastFm('geo.gettoptracks', { country, limit: '20' });
@@ -296,7 +296,7 @@ app.get('/api/charts/regional', async (req, res) => {
   }
 });
 
-app.get('/api/charts/artists', async (req, res) => {
+app.get(['/api/charts/artists', '/charts/artists'], async (req, res) => {
   try {
     const data = await callLastFm('chart.gettopartists', { limit: '15' });
     const rawArtists = data?.artists?.artist || [];
@@ -316,7 +316,7 @@ app.get('/api/charts/artists', async (req, res) => {
 });
 
 // API 3: Smart "Up Next" Autoplay Recommendations (track.getsimilar)
-app.get(['/api/songs/:id/suggestions', '/api/suggestions'], async (req, res) => {
+app.get(['/api/songs/:id/suggestions', '/songs/:id/suggestions', '/api/suggestions', '/suggestions'], async (req, res) => {
   const songId = (req.params.id as string) || (req.query.id as string) || '';
   let artist = (req.query.artist as string) || '';
   let title = (req.query.title as string) || (req.query.track as string) || '';
@@ -386,7 +386,7 @@ app.get(['/api/songs/:id/suggestions', '/api/suggestions'], async (req, res) => 
 });
 
 // API: Song Details
-app.get(['/api/songs', '/api/songs/:id'], async (req, res) => {
+app.get(['/api/songs', '/songs', '/api/songs/:id', '/songs/:id'], async (req, res) => {
   const songId = (req.params.id as string) || (req.query.id as string) || '';
   if (!songId) {
     return res.status(400).json({ success: false, error: 'Missing song id parameter' });
@@ -431,7 +431,7 @@ app.get(['/api/songs', '/api/songs/:id'], async (req, res) => {
 });
 
 // API: YouTube Video ID Resolver (Fast top-match resolution via yt-search)
-app.get('/api/music/youtube-id', async (req, res) => {
+app.get(['/api/music/youtube-id', '/music/youtube-id', '/api/youtube-id', '/youtube-id'], async (req, res) => {
   const query = req.query.query as string;
   if (!query) return res.status(400).json({ error: 'Query required' });
   try {
@@ -457,7 +457,7 @@ app.get('/api/music/youtube-id', async (req, res) => {
 });
 
 // API: Synchronized & Plain Lyrics (via LRCLIB)
-app.get('/api/lyrics', async (req, res) => {
+app.get(['/api/lyrics', '/lyrics'], async (req, res) => {
   const artist = (req.query.artist as string) || '';
   const title = (req.query.title as string) || '';
 
@@ -500,7 +500,7 @@ app.get('/api/lyrics', async (req, res) => {
 });
 
 // API: Artist Media (TheAudioDB + Last.fm)
-app.get('/api/artist', async (req, res) => {
+app.get(['/api/artist', '/artist'], async (req, res) => {
   const name = (req.query.name as string) || '';
   if (!name.trim()) {
     return res.json({ success: false, artist: null });
@@ -554,13 +554,13 @@ app.get('/api/artist', async (req, res) => {
 });
 
 // API: Listen Memory
-app.get('/api/listen-memory', (req, res) => {
+app.get(['/api/listen-memory', '/listen-memory'], (req, res) => {
   const userId = (req.query.userId as string) || 'guest';
   const history = listenMemoryStore.get(userId) || [];
   res.json({ success: true, data: history });
 });
 
-app.post('/api/listen-memory', (req, res) => {
+app.post(['/api/listen-memory', '/listen-memory'], (req, res) => {
   const { userId, songId, title, artist, coverUrl, duration } = req.body;
   if (!userId || !songId) {
     return res.status(400).json({ success: false, error: 'Missing userId or songId' });
