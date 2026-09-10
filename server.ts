@@ -430,17 +430,18 @@ app.get(['/api/songs', '/songs', '/api/songs/:id', '/songs/:id'], async (req, re
   });
 });
 
-// API: YouTube Video ID Resolver (Fast top-match resolution via yt-search)
+// API: YouTube Video ID Resolver (yt-search + direct scrape fallback)
 app.get(['/api/music/youtube-id', '/music/youtube-id', '/api/youtube-id', '/youtube-id'], async (req, res) => {
   const query = req.query.query as string;
   if (!query) return res.status(400).json({ error: 'Query required' });
+  
+  // Strategy 1: yt-search
   try {
     const searchTerms = query.includes('audio') || query.includes('official') ? query : `${query} official audio`;
     const r = await ytSearch(searchTerms);
     if (r && r.videos && r.videos.length > 0) {
       const topVideo = r.videos[0];
       const youtubeId = topVideo.videoId;
-      // 2. YouTube Fallback: Automatically extract YouTube Video ID and set artwork
       return res.json({
         success: true,
         youtubeId,
@@ -449,11 +450,41 @@ app.get(['/api/music/youtube-id', '/music/youtube-id', '/api/youtube-id', '/yout
         coverUrl: `https://img.youtube.com/vi/${youtubeId}/hqdefault.jpg`,
       });
     }
-    return res.status(404).json({ error: 'No video found' });
   } catch (err: any) {
-    console.error('yt-search error:', err);
-    return res.status(500).json({ error: 'Search failed', details: err.message || err.toString() });
+    console.warn('yt-search notice, trying direct search fallback:', err.message);
   }
+
+  // Strategy 2: Direct YouTube search scrape fallback
+  try {
+    const cleanQ = query.replace(/[^\w\s]/gi, ' ').trim();
+    const searchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(`${cleanQ} audio`)}`;
+    const ytRes = await fetch(searchUrl, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept-Language': 'en-US,en;q=0.9',
+      },
+      signal: AbortSignal.timeout(4500),
+    });
+
+    if (ytRes.ok) {
+      const html = await ytRes.text();
+      const match = html.match(/\/watch\?v=([a-zA-Z0-9_-]{11})/);
+      if (match && match[1]) {
+        const youtubeId = match[1];
+        return res.json({
+          success: true,
+          youtubeId,
+          title: query,
+          duration: 210,
+          coverUrl: `https://img.youtube.com/vi/${youtubeId}/hqdefault.jpg`,
+        });
+      }
+    }
+  } catch (e: any) {
+    console.error('Direct YouTube search fallback error:', e.message);
+  }
+
+  return res.status(404).json({ error: 'No video found' });
 });
 
 // API: Synchronized & Plain Lyrics (via LRCLIB)

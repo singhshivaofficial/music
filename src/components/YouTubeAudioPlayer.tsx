@@ -58,14 +58,14 @@ export const YouTubeAudioPlayer: React.FC<YouTubeAudioPlayerProps> = ({
           height: '100%',
           width: '100%',
           playerVars: {
-            autoplay: 0,
+            autoplay: 1,
             controls: 0,
             disablekb: 1,
             enablejsapi: 1,
             fs: 0,
             modestbranding: 1,
             rel: 0,
-            origin: window.location.origin,
+            playsinline: 1,
           },
           events: {
             onReady: (event: any) => {
@@ -90,6 +90,10 @@ export const YouTubeAudioPlayer: React.FC<YouTubeAudioPlayerProps> = ({
                 onPlayStateChange(false);
               } else if (event.data === 0) {
                 onSongEnded();
+              } else if (event.data === 5 && isPlayingRef.current) {
+                try {
+                  event.target.playVideo();
+                } catch (e) {}
               }
             },
             onError: (event: any) => {
@@ -135,14 +139,11 @@ export const YouTubeAudioPlayer: React.FC<YouTubeAudioPlayerProps> = ({
   const loadAndPlaySong = async (song: Song) => {
     if (!playerRef.current || !isReadyRef.current) return;
 
-    
     let videoId = song.youtubeId;
 
     if (!videoId) {
       videoId = await resolveYouTubeId(`${song.artist} ${song.title}`);
     }
-
-    
 
     if (videoId) {
       setCurrentVideoId(videoId);
@@ -152,6 +153,7 @@ export const YouTubeAudioPlayer: React.FC<YouTubeAudioPlayerProps> = ({
             videoId,
             startSeconds: 0,
           });
+          playerRef.current.playVideo();
         } else {
           playerRef.current.cueVideoById({
             videoId,
@@ -160,28 +162,6 @@ export const YouTubeAudioPlayer: React.FC<YouTubeAudioPlayerProps> = ({
         }
       } catch (e) {
         console.warn('loadVideoById notice:', e);
-      }
-    } else {
-      // Fallback: YouTube Search Playlist
-      try {
-        const searchQuery = `${song.artist} ${song.title} audio`;
-        if (isPlayingRef.current) {
-          playerRef.current.loadPlaylist({
-            listType: 'search',
-            list: searchQuery,
-            index: 0,
-            startSeconds: 0,
-          });
-        } else {
-          playerRef.current.cuePlaylist({
-            listType: 'search',
-            list: searchQuery,
-            index: 0,
-            startSeconds: 0,
-          });
-        }
-      } catch (e) {
-        console.warn('loadPlaylist fallback notice:', e);
       }
     }
   };
@@ -259,13 +239,20 @@ export const YouTubeAudioPlayer: React.FC<YouTubeAudioPlayerProps> = ({
   return (
     <div
       ref={containerRef}
-      className="fixed -bottom-[1000px] left-0 w-0 h-0 opacity-0 pointer-events-none overflow-hidden"
+      style={{
+        position: 'fixed',
+        bottom: 0,
+        right: 0,
+        width: '200px',
+        height: '200px',
+        opacity: 0.001,
+        pointerEvents: 'none',
+        zIndex: -100,
+        overflow: 'hidden',
+      }}
       aria-hidden="true"
     >
-      <div className="w-full h-full bg-black">
-        {/* YouTube IFrame target element */}
-        <div id="wave-yt-player-target" className="w-full h-full" />
-      </div>
+      <div id="wave-yt-player-target" style={{ width: '100%', height: '100%' }} />
     </div>
   );
 };
