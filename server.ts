@@ -621,7 +621,12 @@ async function startServer() {
   });
 }
 
-startServer().catch((err) => {
-  console.error('[Wave] Failed to start server:', err);
-  process.exit(1);
-});
+export default app;
+
+if (!process.env.VERCEL) {
+  startServer().catch((err) => {
+    console.error('[Wave] Failed to start server:', err);
+    process.exit(1);
+  });
+}
+
